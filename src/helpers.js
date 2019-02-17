@@ -26,25 +26,7 @@ function handleError(error, exit=false) {
   if (exit) process.exit(1);
 }
 
-/**
- * Prints the help message to `stdout` and exits the program.
- */
-function showHelp() {
-  console.info(`{ Terminal Client for Adventure Land }
-tip: read through the README.md for more imformation
-
-usage: node index.js [-h] -s SERVER -p PORT
-
-optional parameters:
-  -h, --help    show this help message and exit
-
-required parameters:
-  -s, --server  specify the server to use for connections
-  -p, --port    specify the port to use for connections\n`)
-}
-
 module.exports = {
   tryTo,
   handleError,
-  showHelp,
 };
