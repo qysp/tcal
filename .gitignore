@@ -1,0 +1,12 @@
+# deps
+node_modules
+
+# logs
+*.log
+
+# ide
+.vscode
+*.swp
+
+# sensitive data
+config.js
