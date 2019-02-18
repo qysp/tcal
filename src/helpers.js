@@ -16,12 +16,14 @@ async function tryTo(fn, ...args) {
 
 /**
  * Prints the error and exits the program if `exit` is set to `true`.
- * @param {String} error error message to log
+ * @param {String} errorMsg error message to log
  * @param {Boolean} exit whether or not to exit the program, default: `false`
  */
-function handleError(error, exit=false) {
-  // TODO: log error in a file
-  console.error(error);
+function handleError(errorMsg, exit=false) {
+  if (errorMsg) {
+    // TODO: log error in a file (maybe?)
+    console.error(errorMsg);
+  }
   // non-zero exit
   if (exit) process.exit(1);
 }

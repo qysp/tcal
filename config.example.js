@@ -7,6 +7,6 @@ module.exports = {
   email: 'example@email.com',
   password: 'password123',
 
-  // wheter to use https for the connection to Adventure Land
+  // whether to use https for the connection to Adventure Land
   https: true,
 };
