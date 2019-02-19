@@ -3,7 +3,7 @@ const path = require('path');
 const argv = require('minimist')(process.argv.slice(2));
 
 const AdventureLandClient = require('./src/client');
-const { tryTo, handleError, } = require('./src/helpers');
+const { tryTo, handleError, updateCharacters } = require('./src/helpers');
 
 
 async function run() {
@@ -20,7 +20,17 @@ async function run() {
   // fetch characters if needed/requested
   const charactersPath = path.join(__dirname, 'data', 'characters.json');
   if (argv.fetch || !fs.existsSync(charactersPath)) {
-    const characters = await client.getCharacters();
+    let characters = await client.getCharacters();
+    // takes over the existing properties like server and region
+    if (fs.existsSync(charactersPath)) {
+      const old = JSON.parse(fs.readFileSync(charactersPath));
+      characters = updateCharacters(old, characters);
+    }
+    // set default server/region if not already set
+    characters = characters
+      .map(char => (!char.server || !char.region)
+          ? { ...char, region: 'US', server: 'I', }
+          : char);
     fs.writeFileSync(charactersPath, JSON.stringify(characters, null, 4));
   }
 

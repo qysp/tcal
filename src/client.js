@@ -117,6 +117,7 @@ AdventureLandClient.prototype.getServers = async function() {
 /**
  * Load a file from the public Adventure Land website.
  * @param {String} filepath name of the file's path
+ * @returns the response body
  */
 AdventureLandClient.prototype.getGameFile = async function(filepath) {
   return await request

@@ -28,7 +28,30 @@ function handleError(errorMsg, exit=false) {
   if (exit) process.exit(1);
 }
 
+/**
+ * Compares the old characters (from characters.json) to the newly fetched characters
+ * and applies the custom keys/values (i.e. server/region) to the fetched characters.
+ * @param {Array} o 'old' array of characters
+ * @param {Array} n 'new' arrray of characters
+ * @returns the fetched characters array with the previously set server/region
+ */
+function updateCharacters(o, n) {
+  o.forEach(c => {
+    // characters might be sorted differently
+    const index = n.findIndex(char => char.id === c.id)
+    if (index === -1) return;
+    Object.keys(c).forEach(key => {
+      // set the exisiting keys/values
+      if (!n[index][key]) {
+        n[index][key] = c[key];
+      }
+    });
+  });
+  return n;
+}
+
 module.exports = {
   tryTo,
   handleError,
+  updateCharacters,
 };
