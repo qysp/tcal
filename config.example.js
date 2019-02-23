@@ -7,6 +7,14 @@ module.exports = {
   email: 'example@email.com',
   password: 'password123',
 
-  // whether to use https for the connection to Adventure Land
-  https: true,
+  // enter the character name, region and server here
+  // maximum of 4 entries, where one of them should be a merchant
+  active: [
+    {
+      name: 'character1', // the character name
+      server: 'I', // the server name, e.g. `I`, `II`, `III`, `PVP`, etc.
+      region: 'US', // the server region, e.g. `EU`, `US`, etc.
+      script: 'farm.js' // only the name of the script is required or `undefined` if you don't want to use a script
+    },
+  ],
 };

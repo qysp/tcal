@@ -12,5 +12,5 @@ node_modules
 config.js
 data/*.json
 
-# game files
-game_files/*.js
+# user scripts
+scripts/*.js

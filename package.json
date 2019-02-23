@@ -4,11 +4,16 @@
   "description": "A terminal client for Adventure Land.",
   "main": "index.js",
   "dependencies": {
+    "jsdom": "^13.2.0",
     "minimist": "^1.2.0",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7"
   },
   "devDependencies": {},
   "author": "qysp",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://www.github.com/qysp/tcal"
+  }
 }
