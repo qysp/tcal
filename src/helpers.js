@@ -2,7 +2,6 @@ const isString = str => typeof str === 'string';
 const isNumber = num => typeof num === 'number';
 const isBoolean = bool => typeof bool === 'boolean';
 const isObject = obj => typeof obj === 'object';
-const isArray = arr => Array.isArray(arr);
 const isEmptyString = str => str === '';
 
 /**
@@ -11,7 +10,7 @@ const isEmptyString = str => str === '';
  * @param {...any} args args to apply to the function, optional
  * @returns {Promise} a promise that resolves the function's return value or rejects the caught exception
  */
-async function tryTo(fn, ...args) {
+function tryTo(fn, ...args) {
   return new Promise((resolve, reject) => {
     try {
       resolve(fn.apply(null, args));
@@ -40,7 +39,7 @@ function handleError(error, exit=false) {
  * @param {Object} config the user's configurations
  * @returns {Promise} a promise that doesn't resolve anything and rejects with an error message
  */
-async function validateConfig(config) {
+function validateConfig(config) {
   return new Promise((resolve, reject) => {
     if (!isString(config.email) || isEmptyString(config.email)) {
       reject('Must specify an email address in the config file');
@@ -48,7 +47,7 @@ async function validateConfig(config) {
     if (!isString(config.password) || isEmptyString(config.password)) {
       reject('Must specify a password in the config file');
     }
-    if (!isArray(config.active)) {
+    if (!Array.isArray(config.active)) {
       reject('Config file must have an array property \'active\'');
     }
     if (config.active.length === 0) {
@@ -65,7 +64,7 @@ async function validateConfig(config) {
       isString(c.region) && !isEmptyString(c.region) &&
       isString(c.server) && !isEmptyString(c.server) &&
       (isString(c.script) || !c.script))) {
-        reject('Type error in one of your active characters');
+        reject('Type error in at least one of the properties of your active characters');
     }
 
     // config file seems to be valid
@@ -74,12 +73,13 @@ async function validateConfig(config) {
 }
 
 module.exports = {
+  // simple type checks
   isString,
   isNumber,
   isBoolean,
   isObject,
-  isArray,
   isEmptyString,
+  // general
   tryTo,
   handleError,
   validateConfig,

@@ -92,9 +92,7 @@ AdventureLandClient.prototype.getCharacters = async function() {
     })
     .then(body => {
       const jsonData = JSON.parse(body)[0];
-      // only the id and name of each character is needed
-      return jsonData.characters
-        .map(c => ({ id: c.id, name: c.name }));
+      return jsonData.characters;
     })
     .catch(err => handleError(err, true));
 }

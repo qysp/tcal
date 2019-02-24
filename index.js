@@ -15,7 +15,7 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
   // validate the config file and exit on error
   await validateConfig(config)
     .catch(err => handleError(
-      `${err}\ncheck the README for an usage example`,
+      `${err}\ncheck the README for more information on the config typings and structure`,
       true));
 
   // init Adventure Land client
@@ -30,7 +30,8 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
 
   // fetch characters if needed/requested
   if (argv.fetch || !fs.existsSync(charactersPath)) {
-    const characters = await client.getCharacters();
+    const characters = await client.getCharacters()
+      .then(chars => chars.map(c => ({ id: c.id, name: c.name, type: c.type })));
     fs.writeFileSync(charactersPath, JSON.stringify(characters, null, 4));
   }
 
