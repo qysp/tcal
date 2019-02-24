@@ -26,9 +26,9 @@ interface Config {
 }
 
 interface ActiveCharacter {
-  name: string,
-  region: string,
-  server: string,
-  script: string | undefined | null
+  name: string;
+  region: string;
+  server: string;
+  script: string | undefined | null;
 };
 ```

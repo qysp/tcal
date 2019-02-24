@@ -15,7 +15,7 @@ function tryTo(fn, ...args) {
     try {
       resolve(fn.apply(null, args));
     } catch (e) {
-      reject(e)
+      reject(e);
     }
   });
 }
