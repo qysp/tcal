@@ -2,7 +2,7 @@ const isString = str => typeof str === 'string';
 const isNumber = num => typeof num === 'number';
 const isBoolean = bool => typeof bool === 'boolean';
 const isObject = obj => typeof obj === 'object';
-const isEmptyString = str => str === '';
+const isFunction = fn => typeof fn === 'function';
 
 /**
  * Return a promise of the function's exection in a try/catch block.
@@ -41,10 +41,10 @@ function handleError(error, exit=false) {
  */
 function validateConfig(config) {
   return new Promise((resolve, reject) => {
-    if (!isString(config.email) || isEmptyString(config.email)) {
+    if (!isString(config.email) || config.email === '') {
       reject('Must specify an email address in the config file');
     }
-    if (!isString(config.password) || isEmptyString(config.password)) {
+    if (!isString(config.password) || config.password === '') {
       reject('Must specify a password in the config file');
     }
     if (!Array.isArray(config.active)) {
@@ -60,9 +60,9 @@ function validateConfig(config) {
       reject('Every element in the array property \'active\' must be an object');
     }
     if (!config.active.every(c => 
-      isString(c.name) && !isEmptyString(c.name) &&
-      isString(c.region) && !isEmptyString(c.region) &&
-      isString(c.server) && !isEmptyString(c.server) &&
+      isString(c.name) && c.name !== '' &&
+      isString(c.region) && c.region !== '' &&
+      isString(c.server) && !c.server !== '' &&
       (isString(c.script) || !c.script))) {
         reject('Type error in at least one of the properties of your active characters');
     }
@@ -72,13 +72,14 @@ function validateConfig(config) {
   });
 }
 
+
 module.exports = {
   // simple type checks
   isString,
   isNumber,
   isBoolean,
   isObject,
-  isEmptyString,
+  isFunction,
   // general
   tryTo,
   handleError,
