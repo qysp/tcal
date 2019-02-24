@@ -15,13 +15,13 @@ const { baseUrl, } = require('./globals')
  * @param {String} config.email email address for login
  * @param {String} config.password password for login
  */
-const AdventureLandClient = function(config) {
-  this.url = baseUrl;
-  this.email = config.email;
-  this.password = config.password;
-  // initialize each active character with the property `online` set to `false`
-  this.activeChars = config.active.map(c => c.online = false);
-  this.loggedIn = false;
+class AdventureLandClient {
+  constructor(config) {
+    this.url = baseUrl;
+    this.email = config.email;
+    this.password = config.password;
+    this.loggedIn = false;
+  }
 };
 
 /**
