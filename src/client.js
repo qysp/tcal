@@ -7,7 +7,7 @@
 const request = require('request-promise-native');
 
 const { handleError, } = require('./helpers');
-const { baseUrl, } = require('./globals')
+const { baseUrl, userAgent } = require('./globals')
 
 /**
  * Initialize the Client for Adventure Land and the necessary websocket.
@@ -30,14 +30,17 @@ class AdventureLandClient {
  */
 AdventureLandClient.prototype.login = async function() {
   const form = {
-    arguments: `{ "email": "${this.email}", "password": "${this.password}", "only_login": true }`,
+    arguments: JSON.stringify({
+      email: this.email,
+      password: this.password,
+      only_login: true
+    }),
     method: 'signup_or_login',
   };
 
   const headers = {
     Accept: 'application/json, text/html, */*;q=0.01',
-    'X-Requested-With': 'XMLHttpRequest',
-    'User-Agent': 'TCAL: (v1.0.0)',
+    'User-Agent': userAgent,
     'Content-Type': 'application/x-www-form-urlencoded',
   }
 
@@ -79,8 +82,7 @@ AdventureLandClient.prototype.getCharacters = async function() {
   const headers = {
     Cookie: `auth=${this.sessionCookie}`,
     Accept: 'application/json, text/html, */*;q=0.01',
-    'X-Requested-With': 'XMLHttpRequest',
-    'User-Agent': 'TCAL: (v1.0.0)',
+    'User-Agent': userAgent,
     'Content-Type': 'application/x-www-form-urlencoded',
   };
 
@@ -110,8 +112,7 @@ AdventureLandClient.prototype.getServers = async function() {
   const headers = {
     Cookie: `auth=${this.sessionCookie}`,
     Accept: 'application/json, text/html, */*;q=0.01',
-    'X-Requested-With': 'XMLHttpRequest',
-    'User-Agent': 'TCAL: (v1.0.0)',
+    'User-Agent': userAgent,
     'Content-Type': 'application/x-www-form-urlencoded',
   };
 
@@ -133,7 +134,7 @@ AdventureLandClient.prototype.getServers = async function() {
 
 /**
  * Get the user's authentication token.
- * @returns {String|Boolean} user auth on success, false on failure
+ * @returns {String|Boolean} user auth on success, `false` on failure
  */
 AdventureLandClient.prototype.getUserAuth = async function() {
   if (!this.loggedIn) {
@@ -143,7 +144,7 @@ AdventureLandClient.prototype.getUserAuth = async function() {
   const headers = {
     Cookie: `auth=${this.sessionCookie}`,
     Accept: 'application/json, text/html, */*;q=0.01',
-    'User-Agent': 'TCAL: (v1.0.0)',
+    'User-Agent': userAgent,
   };
 
   return await request
@@ -170,7 +171,7 @@ AdventureLandClient.prototype.getUserAuth = async function() {
  * @param {String} name the character's name
  * @param {String} cls the character's class
  * @param {String} gender the character's gender
- * @returns {Boolean} true on success, false on failure
+ * @returns {Boolean} `true` on success, `false` on failure
  */
 AdventureLandClient.prototype.createCharacter = async function(name, cls, gender) {
   if (!this.loggedIn) {
@@ -178,15 +179,14 @@ AdventureLandClient.prototype.createCharacter = async function(name, cls, gender
   }
 
   const form = {
-    arguments: `{ "name": "${name}", "char": "${cls}", "gender": "${gender}" }`,
+    arguments: JSON.stringify({ name: name, char: cls, gender: gender }),
     method: 'create_character',
   };
 
   const headers = {
     Cookie: `auth=${this.sessionCookie}`,
     Accept: 'application/json, text/html, */*;q=0.01',
-    'X-Requested-With': 'XMLHttpRequest',
-    'User-Agent': 'TCAL: (v1.0.0)',
+    'User-Agent': userAgent,
     'Content-Type': 'application/x-www-form-urlencoded',
   };
 
@@ -212,7 +212,7 @@ AdventureLandClient.prototype.createCharacter = async function(name, cls, gender
 /**
  * Delete a character.
  * @param {String} name the character's name
- * @returns {Boolean} true on success, false on failure
+ * @returns {Boolean} `true` on success, `false` on failure
  */
 AdventureLandClient.prototype.deleteCharacter = async function(name) {
   if (!this.loggedIn) {
@@ -220,15 +220,14 @@ AdventureLandClient.prototype.deleteCharacter = async function(name) {
   }
 
   const form = {
-    arguments: `{ "name": "${name}" }`,
+    arguments: JSON.stringify({ name: name }),
     method: 'delete_character',
   };
 
   const headers = {
     Cookie: `auth=${this.sessionCookie}`,
     Accept: 'application/json, text/html, */*;q=0.01',
-    'X-Requested-With': 'XMLHttpRequest',
-    'User-Agent': 'TCAL: (v1.0.0)',
+    'User-Agent': userAgent,
     'Content-Type': 'application/x-www-form-urlencoded',
   };
 
@@ -252,6 +251,53 @@ AdventureLandClient.prototype.deleteCharacter = async function(name) {
 }
 
 /**
+ * Upload and save code to a slot.
+ * @param {Number} slot the slot number of the saved code
+ * @param {String} slotName the name of the slot
+ * @param {String} code the code to upload
+ * @returns {Boolean} `true` on success, `false` on failure
+ */
+AdventureLandClient.prototype.saveCode = async function(slot, slotName, code) {
+  if (!this.loggedIn) {
+    throw new Error('Must login before fetching user authentication');
+  }
+
+  const form = {
+    arguments: JSON.stringify({
+      slot: slot,
+      name: slotName,
+      code: code,
+    }),
+    method: 'save_code',
+  };
+
+  const headers = {
+    Cookie: `auth=${this.sessionCookie}`,
+    Accept: 'application/json, text/html, */*;q=0.01',
+    'User-Agent': userAgent,
+    'Content-Type': 'application/x-www-form-urlencoded',
+  };
+
+  return await request
+    .post({
+      uri: `${this.url}/api/save_code`,
+      headers: headers,
+      form: form,
+    })
+    .then(body => {
+      const jsonData = JSON.parse(body)[0];
+      if (jsonData.type === 'ui_error') {
+        throw new Error(jsonData.message || 'Could not save code');
+      }
+      return true;
+    })
+    .catch(err => {
+      handleError(err);
+      return false;
+    });
+}
+
+/**
  * Load some sort of data from Adventure Land (i.e. HTML, JavaScript files).
  * @param {String} params query parameters or a file's path
  * @param {Boolean} authneeded whether the session cookie should be used for the request
@@ -261,7 +307,7 @@ AdventureLandClient.prototype.getData = async function(params, authNeeded=false)
   const headers = {
     // just accept anything
     Accept: '*/*',
-    'User-Agent': 'TCAL: (v1.0.0)',
+    'User-Agent': userAgent,
   }
   
   if (authNeeded) {
