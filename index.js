@@ -4,6 +4,8 @@ const argv = require('minimist')(process.argv.slice(2));
 const { fork } = require('child_process');
 
 const AdventureLandClient = require('./src/client');
+const DataProcessor = require('./src/processor');
+const globals = require('./src/globals');
 const { tryTo, handleError, validateConfig, } = require('./src/helpers');
 
 
@@ -14,9 +16,7 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
 
   // validate the config file and exit on error
   await validateConfig(config)
-    .catch(err => handleError(
-      `${err}\ncheck the README for more information on the config typings and structure`,
-      true));
+    .catch(err => handleError(err, true));
 
   // init Adventure Land client
   const client = new AdventureLandClient(config);
@@ -48,6 +48,9 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
   // to minimize the the read operations
   const scriptCache = {};
 
+  const CHARACTERS = {};
+  config.active.forEach(c => CHARACTERS[c.name] = { online: false });
+
   for (const activeChar of config.active) {
     // get and parse characters.json
     const characterData = await tryTo(fs.readFileSync, charactersPath)
@@ -62,6 +65,7 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
     // find matching character (for the character id)
     const activeCharData = characterData.find(c => 
       activeChar.name.toLowerCase() === c.name.toLowerCase());
+    const charId = activeCharData.id;
 
     if (!activeCharData) {
       handleError(`Character '${activeChar.name}' does not exist in the data records`, true);
@@ -89,18 +93,59 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
     // TODO: find a cleaner way to set the desired server
     html = html
       .replace(/server_addr\s?=\s?"\w+\d+\.adventure.land"/, `server_addr="${activeServerData.ip}"`)
-      .replace(/server_port\s?=\s?"\d+"/, `server_port="${activeServerData.port}"`)
+      .replace(/server_port\s?=\s?"\d+"/, `server_port="${activeServerData.port}"`);
 
     // args for the subprocess
     const args = [
       html,
-      activeCharData.id,
+      charId,
       scriptCache[activeChar.script],
     ];
 
+    const stdioOpts = [ 'ipc' ];
+    if (argv.verbose) stdioOpts.push(0, 1, 2);
+
     // subprocess emulating a browser environment
-    fork(path.join(__dirname, 'src', 'emulator.js'), args, { stdio: [ 'ipc' ] })
-      .on('message', msg => console.log(msg)) // TODO: listen for events
-      .on('error', err => handleError(err, true)); // TODO: don't exit the whole program on an error; retry(?)
+    const subprocess = fork(path.join(__dirname, 'src', 'emulator.js'), args, {
+      cwd: path.resolve(__dirname),
+      stdio: stdioOpts,
+    });
+
+    subprocess
+      .on('message', msg => {
+        switch (msg.type) {
+          // character successfully logged in
+          case globals.START:
+            CHARACTERS[charId] = {
+              online: true,
+              update: new DataProcessor(
+                charId,
+                activeChar.name,
+                activeCharData.type),
+            };
+            break;
+          // disconnect signal sent
+          case globals.DISCONNECT:
+            CHARACTERS[activeChar.name].online = false;
+            subprocess.kill();
+            break;
+          // generic game error, e.g. while logging in
+          case globals.GAMEERROR:
+            handleError(msg.data);
+            break;
+          // generic game log, e.g. 'You killed a Goo'
+          case globals.GAMELOG:
+            break;
+          // custom (raw) character data; sent once per second 
+          case globals.UPDATE:
+            CHARACTERS[charId].update.processUpdate(msg.data);
+            break;
+          default:
+            handleError(`Unrecognized message from subprocess: ${msg}`);
+            break;
+        }
+      })
+      .on('error', err => handleError(err))
+      .on('uncaughtException', err => handleError(err, true));
   }
 })();

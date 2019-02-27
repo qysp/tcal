@@ -15,6 +15,7 @@ NOTE: This project is WIP.
 
 ## Start parameters
 * --fetch: fetch your characters and the available servers. Overwrites existing character/server JSON files in the `data` folder.
+* --verbose: stop surppressing stdout/stderr from subprocess.
 
 ## Config typings
 ```ts

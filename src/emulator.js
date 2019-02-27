@@ -1,57 +1,104 @@
-const jsdom = require('jsdom');
+const { JSDOM } = require('jsdom');
 
-const { baseUrl, } = require('./globals');
+const globals = require('./globals');
+const { isString, } = require('./helpers');
 
 const argv = process.argv.slice(2);
-const { JSDOM } = jsdom;
+const args = {
+  html: argv[0],
+  characterId: argv[1],
+  script: argv[2],
+};
 
-(async () => {
-  const args = {
-    html: argv[0],
-    characterId: argv[1],
-    script: argv[2],
-  };
+const window = (new JSDOM(args.html, {
+  userAgent: globals.userAgent,
+  url: globals.baseUrl,
+  referrer: globals.baseUrl,
+  runScripts: 'dangerously',
+  resources: 'usable',
+  pretendToBeVisual: true,
+})).window;
 
-  const window = (new JSDOM(args.html, {
-    userAgent: 'TCAL: (v1.0.0)',
-    url: baseUrl,
-    referrer: baseUrl,
-    runScripts: 'dangerously',
-    resources: 'usable',
-    pretendToBeVisual: true,
-  })).window;
+// TODO: could you realiably overwrite the server_addr / server_port before the resources are loaded?
 
-  // TODO: could you realiably overwrite the server_addr / server_port before the socket is initialized?
+// shorter version for log_in
+const login = () => window.log_in(window.user_id, args.characterId, window.user_auth);
 
-  // await the resource loading (initiaization of necessary window properties)
-  await new Promise(resolve => setInterval(() => window.socket && resolve(), 100));
+let damage = 0;
 
-  // shorter version for log_in
-  const login = () => window.log_in(window.user_id, args.characterId, window.user_auth);
-
-  // game loaded, ready to login
-  window.socket.on('welcome', () => {
-    login();
-  });
-
-  // unsuccessful login
-  window.socket.on('game_error', err => {
-    let match;
-    if (err === 'Failed: ingame') {
-      setTimeout(() => login(), 35000);
-    } else if ((match = err.match(/wait_(\d+)_seconds/))) {
-      setTimeout(() => login(), parseInt(match[1]));
+// wait for resource loader
+window.addEventListener('load', () => {
+  // socket welcomed, ready to login
+  window.socket.on(globals.WELCOME, () => {
+    if (!window.character) {
+      login();
     }
   });
 
   // successful login
-  window.socket.on('start', () => {
+  window.socket.on(globals.START, data => {
+    process.send({
+      type: globals.START,
+      data: data,
+    });
     if (args.script) {
-      window.start_runner(undefined, args.script);
+      window.start_runner(null, args.script);
+    }
+    setInterval(() => {
+      if (!window.character) return;
+      process.send({
+        type: globals.UPDATE,
+        data: {
+          items: window.character.items,
+          level: window.character.level,
+          gold: window.character.gold,
+          xp: window.character.xp,
+          max_xp: window.character.max_xp,
+          hp: window.character.hp,
+          mp: window.character.mp,
+          max_hp: window.character.max_hp,
+          max_mp: window.character.max_mp,
+          rip: window.character.rip,
+          damage: damage,
+          target: window.G.monsters[window.ctarget.mtype].name,
+        }
+      });
+      // reset damage
+      damage = 0;
+    }, 1000);
+  });
+
+  window.socket.on(globals.HIT, data => {
+    if (window.character && data.hid === window.character.id) {
+      damage += data.damage;
     }
   });
 
-  window.socket.on('game_log', () => {
-    // TODO: forward to 'frontend'
+  window.socket.on(globals.DISCONNECT, () => {
+    process.send({
+      type: globals.DISCONNECT,
+      data: window.disconnect_reason || 'No reason supplied',
+    });
   });
-})();
+
+  window.socket.on(globals.GAMEERROR, data => {
+    const error = isString(data) ? data : data.message;
+    // unsuccessful login
+    if (/Failed: (ingame|wait_\d+_seconds)/.test(error)) {
+      process.send({
+        type: globals.GAMEERROR,
+        data: error,
+      });
+      const match = data.match(/wait_(\d+)_seconds/);
+      const seconds = match ? parseInt(match[1]) + 1 : 40;
+      setTimeout(() => login(), seconds * 1000);
+    }
+  });
+
+  window.socket.on(globals.GAMELOG, data => {
+    process.send({
+      type: globals.GAMELOG,
+      data: isString(data) ? data : data.message,
+    });
+  });
+});

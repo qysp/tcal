@@ -9,13 +9,13 @@ const request = require('request-promise-native');
 const { handleError, } = require('./helpers');
 const { baseUrl, userAgent } = require('./globals')
 
-/**
- * Initialize the Client for Adventure Land and the necessary websocket.
- * @param {Object} config config for the Adventure Land client
- * @param {String} config.email email address for login
- * @param {String} config.password password for login
- */
 class AdventureLandClient {
+  /**
+   * Initialize the client for Adventure Land.
+   * @param {Object} config config for the Adventure Land client
+   * @param {String} config.email email address for login
+   * @param {String} config.password password for login
+   */
   constructor(config) {
     this.url = baseUrl;
     this.email = config.email;
