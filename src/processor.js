@@ -6,7 +6,7 @@ class DataProcessor {
    * @param {String} cls character's class
    * @param {Number} timeFrame time frame for the X per second calculations
    */
-  constructor(id, name, cls) {
+  constructor(id, name, cls, timeFrame) {
     this.id = id;
     this.name = name;
     this.class = cls;
