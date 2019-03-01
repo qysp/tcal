@@ -60,9 +60,9 @@ DataProcessor.prototype.processUpdate = function(data) {
   this.mpPct = ((data.mp / data.max_mp) * 100).toFixed(2);
 
   // keep dmg/gold/xp of the last X seconds defined by `timeFrame`
-  if (this.damageData.length === this.timeFrame) this.damage.shift();
-  if (this.goldData.length === this.timeFrame) this.gold.shift();
-  if (this.xpData.length === this.timeFrame) this.xp.shift();
+  if (this.damageData.length === this.timeFrame) this.damageData.shift();
+  if (this.goldData.length === this.timeFrame) this.goldData.shift();
+  if (this.xpData.length === this.timeFrame) this.xpData.shift();
   this.damageData.push(data.damage)
   this.goldData.push(data.gold);
   this.xpData.push(data.xp);
