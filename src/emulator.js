@@ -45,7 +45,15 @@ window.addEventListener('load', () => {
       window.start_runner(null, args.script);
     }
     setInterval(() => {
-      if (!window.character) return;
+      // TODO: support the merchant with update about gold, items, etc. (needs some special property to recognize)
+      if (!window.character || window.character.ctype === 'merchant') {
+        return;
+      }
+
+      const target = window.ctarget.mtype
+        ? window.G.monsters[window.ctarget.mtype].name
+        : undefined;
+
       process.send({
         type: globals.UPDATE,
         data: {
@@ -60,7 +68,7 @@ window.addEventListener('load', () => {
           max_mp: window.character.max_mp,
           rip: window.character.rip,
           damage: damage,
-          target: window.G.monsters[window.ctarget.mtype].name,
+          target: target,
         }
       });
       // reset damage
