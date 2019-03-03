@@ -41,8 +41,8 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
     fs.writeFileSync(serversPath, JSON.stringify(servers, null, 4));
   }
 
-  // get the character selection page
-  let html = await client.getData('?no_html=true&no_graphics=true', true)
+  // get the main (character selection) page
+  let mainPageHtml = await client.getData('?no_html=true&no_graphics=true', true)
     .catch(err => handleError(err, true));
 
   // to minimize the the read operations
@@ -65,7 +65,6 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
     // find matching character (for the character id)
     const activeCharData = characterData.find(c => 
       activeChar.name.toLowerCase() === c.name.toLowerCase());
-    const charId = activeCharData.id;
 
     if (!activeCharData) {
       handleError(`Character '${activeChar.name}' does not exist in the data records`, true);
@@ -77,9 +76,7 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
       activeChar.server.toLowerCase() === s.name.toLowerCase());
     
     if (!activeServerData) {
-      handleError(
-        `A server with the properties: '${activeChar.region} ${activeChar.server}' does not exist in the data records`,
-        true);
+      handleError(`Server: '${activeChar.region} ${activeChar.server}' does not exist in the data records`, true);
     }
 
     if (activeChar.script && !scriptCache[activeChar.script]) {
@@ -91,38 +88,40 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
     }
 
     // TODO: find a cleaner way to set the desired server
-    html = html
+    mainPageHtml = mainPageHtml
       .replace(/server_addr\s?=\s?"\w+\d+\.adventure.land"/, `server_addr="${activeServerData.ip}"`)
       .replace(/server_port\s?=\s?"\d+"/, `server_port="${activeServerData.port}"`);
 
     // args for the subprocess
     const args = [
-      html,
-      charId,
+      mainPageHtml,
+      activeCharData.id,
       scriptCache[activeChar.script],
     ];
 
     const stdioOpts = [ 'ipc' ];
-    if (argv.verbose) stdioOpts.push(0, 1, 2);
+    if (argv.verbose) {
+      stdioOpts.push(0, 1, 2);
+    }
 
     // subprocess emulating a browser environment
-    const subprocess = fork(path.join(__dirname, 'src', 'emulator.js'), args, {
-      cwd: path.resolve(__dirname),
-      stdio: stdioOpts,
-    });
+    const subprocess = fork(
+      path.join(__dirname, 'src', 'emulator.js'),
+      args,
+      { stdio: stdioOpts }
+    );
 
     subprocess
       .on('message', msg => {
         switch (msg.type) {
           // character successfully logged in
           case globals.START:
-            CHARACTERS[charId] = {
-              online: true,
-              update: new DataProcessor(
-                charId,
-                activeChar.name,
-                activeCharData.type),
-            };
+            CHARACTERS[activeChar.name].online = true;
+            CHARACTERS[activeChar.name].processor = new DataProcessor(
+              activeCharData.id,
+              activeChar.name,
+              activeCharData.type
+            );
             break;
           // disconnect signal sent
           case globals.DISCONNECT:
@@ -138,7 +137,7 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
             break;
           // custom (raw) character data; sent once per second 
           case globals.UPDATE:
-            CHARACTERS[charId].update.processUpdate(msg.data);
+            CHARACTERS[activeChar.name].processor.update(msg.data);
             break;
           default:
             handleError(`Unrecognized message from subprocess: ${msg}`);

@@ -49,8 +49,8 @@ window.addEventListener('load', () => {
       if (!window.character || window.character.ctype === 'merchant') {
         return;
       }
-
-      const target = window.ctarget.mtype
+      
+      const target = window.ctarget && window.ctarget.mtype
         ? window.G.monsters[window.ctarget.mtype].name
         : undefined;
 

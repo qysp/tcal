@@ -22,7 +22,7 @@ class DataProcessor {
  * Process the data from a status update of a subprocess.
  * @param {Object} data the status update
  */
-DataProcessor.prototype.processUpdate = function(data) {
+DataProcessor.prototype.update = function(data) {
   this.level = data.level;
   this.rip = data.rip;
   this.target = data.target;
