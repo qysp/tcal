@@ -1,12 +1,8 @@
-// Based on and inspired by NexusNull:
-// https://github.com/NexusNull/ALBot/blob/master/httpWrapper.js
-
 // Right now it is very hacky and heavily relies on the correctness of the server's response.
 // The goal should be to make this a reliable standalone AL client framework you can build apps on.
 
 const request = require('request-promise-native');
 
-const { handleError, } = require('./helpers');
 const { baseUrl, userAgent } = require('./globals')
 
 class AdventureLandClient {
@@ -65,8 +61,7 @@ AdventureLandClient.prototype.login = async function() {
         .split('=')[1];
       this.userId = this.sessionCookie.split('-')[0];
       this.loggedIn = true;
-    })
-    .catch(err => handleError(err, true));
+    });
 }
 
 /**
@@ -95,8 +90,7 @@ AdventureLandClient.prototype.getCharacters = async function() {
     .then(body => {
       const jsonData = JSON.parse(body)[0];
       return jsonData.characters;
-    })
-    .catch(err => handleError(err, true));
+    });
 }
 
 /**
@@ -128,13 +122,12 @@ AdventureLandClient.prototype.getServers = async function() {
         throw new Error('Failed fetching server list');
       }
       return jsonData.message;
-    })
-    .catch(err => handleError(err, true));
+    });
 }
 
 /**
  * Get the user's authentication token.
- * @returns {String|Boolean} user auth on success, `false` on failure
+ * @returns {String} user auth token
  */
 AdventureLandClient.prototype.getUserAuth = async function() {
   if (!this.loggedIn) {
@@ -159,10 +152,6 @@ AdventureLandClient.prototype.getUserAuth = async function() {
       }
       this.userAuth = found[1];
       return this.userAuth;
-    })
-    .catch(err => {
-      handleError(err);
-      return false;
     });
 }
 
@@ -171,7 +160,7 @@ AdventureLandClient.prototype.getUserAuth = async function() {
  * @param {String} name the character's name
  * @param {String} cls the character's class
  * @param {String} gender the character's gender
- * @returns {Boolean} `true` on success, `false` on failure
+ * @returns {Boolean} `true` on success
  */
 AdventureLandClient.prototype.createCharacter = async function(name, cls, gender) {
   if (!this.loggedIn) {
@@ -202,17 +191,13 @@ AdventureLandClient.prototype.createCharacter = async function(name, cls, gender
         throw new Error(jsonData.message || 'Character creation failed');
       }
       return true;
-    })
-    .catch(err => {
-      handleError(err);
-      return false;
     });
 }
 
 /**
  * Delete a character.
  * @param {String} name the character's name
- * @returns {Boolean} `true` on success, `false` on failure
+ * @returns {Boolean} `true` on success
  */
 AdventureLandClient.prototype.deleteCharacter = async function(name) {
   if (!this.loggedIn) {
@@ -243,10 +228,6 @@ AdventureLandClient.prototype.deleteCharacter = async function(name) {
         throw new Error(jsonData.message || 'Character deletion failed');
       }
       return true;
-    })
-    .catch(err => {
-      handleError(err);
-      return false;
     });
 }
 
@@ -255,7 +236,7 @@ AdventureLandClient.prototype.deleteCharacter = async function(name) {
  * @param {Number} slot the slot number of the saved code
  * @param {String} slotName the name of the slot
  * @param {String} code the code to upload
- * @returns {Boolean} `true` on success, `false` on failure
+ * @returns {Boolean} `true` on success
  */
 AdventureLandClient.prototype.saveCode = async function(slot, slotName, code) {
   if (!this.loggedIn) {
@@ -290,10 +271,6 @@ AdventureLandClient.prototype.saveCode = async function(slot, slotName, code) {
         throw new Error(jsonData.message || 'Could not save code');
       }
       return true;
-    })
-    .catch(err => {
-      handleError(err);
-      return false;
     });
 }
 

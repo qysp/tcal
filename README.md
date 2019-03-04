@@ -1,22 +1,18 @@
-NOTE: This project is WIP.
-
 # TCAL
 **T**erminal **C**lient for [**A**dventure **L**and](https://adventure.land).
 
-## Requirements
-* Adventure Land Account
-* Node.js (and a package manager)
+Heavily inspired by [NexusNull's Adventure Land Bot](https://github.com/NexusNull/ALBot).
 
 ## Getting started
-1. set your email address and password as well as your active characters in the `config.example.js`
-2. rename `config.example.js` to `config.js`
+1. copy `config.example.js` and rename it to `config.js`
+2. set your email address and password as well as your active characters in the `config.example.js`
 3. install the necessary dependencies with the package manager of your choice, e.g. with NPM `npm install`
 4. finally, run `node index.js` to start the client
 
 ## Start parameters
-* --fetch: fetch your characters and the available servers. Overwrites existing character/server JSON files in the `data` folder.
-* --verbose: stop suppressing stdout/stderr from subprocesses.
-* --log: pipe the game log of each active character into its own log file, respectively.
+* `--fetch`: fetch your characters and the available servers. Overwrites existing character/server JSON files in the `data` folder.
+* `--verbose`: stop suppressing stdout/stderr from subprocesses.
+* `--log`: pipe the game log of each active character into its own log file, respectively. Does not append to existing files.
 
 ## Config typings
 ```ts
@@ -34,5 +30,10 @@ interface ActiveCharacter {
   script: string | undefined | null;
 };
 ```
+
+## Feature ideas
+- [ ] Terminal interface with DPS, GPS, XPPS, nice graphs, etc. (e.g. with [Blessed](https://github.com/chjj/blessed))
+
 ## Known errors
-* Sometimes not all _active_ characters are getting logged in. The client has to be restarted at this point.
+* Sometimes not all _active_ characters are getting logged in. The client has to be restarted at this point. Most likely happens because the `load` event is not triggered (or too soon?) which the emulator listens for to login a character.
+* Annoying 'errors' getting printed in verbose mode, especially `TypeError: Cannot read property 'name/width/...' of null`. Can't figure out where exactly the error is being raised since the printed 'error' is just a huge pile of code and not a real stacktrace.

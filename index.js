@@ -22,7 +22,8 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
   const client = new AdventureLandClient(config);
 
   // login, on error exit
-  await client.login();
+  await client.login()
+    .catch(err => handleError(err, true));
 
   // build the character's/server's file path
   const charactersPath = path.join(__dirname, 'data', 'characters.json');
@@ -32,13 +33,15 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
   // fetch characters if needed/requested
   if (argv.fetch || !fs.existsSync(charactersPath)) {
     const characters = await client.getCharacters()
-      .then(chars => chars.map(c => ({ id: c.id, name: c.name, type: c.type })));
+      .then(chars => chars.map(c => ({ id: c.id, name: c.name, type: c.type })))
+      .catch(err => handleError(err, true));
     fs.writeFileSync(charactersPath, JSON.stringify(characters, null, 4));
   }
 
   // fetch servers if needed/requested
   if (argv.fetch || !fs.existsSync(serversPath)) {
-    const servers = await client.getServers();
+    const servers = await client.getServers()
+      .catch(err => handleError(err, true));
     fs.writeFileSync(serversPath, JSON.stringify(servers, null, 4));
   }
 
