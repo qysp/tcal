@@ -35,5 +35,4 @@ interface ActiveCharacter {
 - [ ] Terminal interface with DPS, GPS, XPPS, nice graphs, etc. (e.g. with [Blessed](https://github.com/chjj/blessed))
 
 ## Known errors
-* Sometimes not all _active_ characters are getting logged in. The client has to be restarted at this point. Most likely happens because the `load` event is not triggered (or too soon?) which the emulator listens for to login a character.
 * Annoying 'errors' getting printed in verbose mode, especially `TypeError: Cannot read property 'name/width/...' of null`. Can't figure out where exactly the error is being raised since the printed 'error' is just a huge pile of code and not a real stacktrace.

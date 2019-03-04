@@ -24,9 +24,14 @@ const login = () => window.log_in(window.user_id, args.characterId, window.user_
 
 let damage = 0;
 
-// wait for resource loader
+// wait for resources to be loaded 
 window.addEventListener('load', () => {
   // socket welcomed, ready to login
+  if (window.socket_welcomed) {
+    login();
+  }
+
+  // socket not yet welcomed, listening for event
   window.socket.on(globals.WELCOME, () => {
     if (!window.character) {
       login();
