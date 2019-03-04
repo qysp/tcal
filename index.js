@@ -27,6 +27,7 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
   // build the character's/server's file path
   const charactersPath = path.join(__dirname, 'data', 'characters.json');
   const serversPath = path.join(__dirname, 'data', 'servers.json');
+  const logsPath = path.join(__dirname, 'logs');
 
   // fetch characters if needed/requested
   if (argv.fetch || !fs.existsSync(charactersPath)) {
@@ -41,6 +42,11 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
     fs.writeFileSync(serversPath, JSON.stringify(servers, null, 4));
   }
 
+  // create logs folder if it does not exist and the `log` start parameter is used
+  if (argv.log && !fs.existsSync(logsPath)) {
+    fs.mkdirSync(logsPath);
+  }
+
   // get the main (character selection) page
   let mainPageHtml = await client.getData('?no_html=true&no_graphics=true', true)
     .catch(err => handleError(err, true));
@@ -49,7 +55,14 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
   const scriptCache = {};
 
   const CHARACTERS = {};
-  config.active.forEach(c => CHARACTERS[c.name] = { online: false });
+  config.active.forEach(c => {
+    CHARACTERS[c.name] = { online: false };
+    if (argv.log) {
+      CHARACTERS[c.name].stream = fs.createWriteStream(path.join(logsPath, `${c.name}.log`));
+      // write current date at the top of the file
+      CHARACTERS[c.name].stream.write(`${new Date().toISOString()}\n\n`);
+    }
+  });
 
   for (const activeChar of config.active) {
     // get and parse characters.json
@@ -111,6 +124,8 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
       { stdio: stdioOpts }
     );
 
+    console.log(`Created subprocess for: ${activeChar.name}`);
+
     subprocess
       .on('message', msg => {
         switch (msg.type) {
@@ -122,25 +137,30 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
               activeChar.name,
               activeCharData.type
             );
+            console.log(`Successfully logged in: ${activeChar.name}`);
             break;
           // disconnect signal sent
           case globals.DISCONNECT:
             CHARACTERS[activeChar.name].online = false;
+            if (argv.log) {
+              CHARACTERS[activeChar.name].stream.close();
+            }
             subprocess.kill();
+            console.log(`Disconnected: ${activeChar.name}\n${msg.data}`);
             break;
           // generic game error, e.g. while logging in
           case globals.GAMEERROR:
-            handleError(msg.data);
+            console.log(`Game error: ${activeChar.name}\n${msg.data}`);
             break;
           // generic game log, e.g. 'You killed a Goo'
           case globals.GAMELOG:
+            if (argv.log) {
+              CHARACTERS[activeChar.name].stream.write(`${msg.data}\n`);
+            }
             break;
           // custom (raw) character data; sent once per second 
           case globals.UPDATE:
             CHARACTERS[activeChar.name].processor.update(msg.data);
-            break;
-          default:
-            handleError(`Unrecognized message from subprocess: ${msg}`);
             break;
         }
       })

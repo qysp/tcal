@@ -15,7 +15,8 @@ NOTE: This project is WIP.
 
 ## Start parameters
 * --fetch: fetch your characters and the available servers. Overwrites existing character/server JSON files in the `data` folder.
-* --verbose: stop surppressing stdout/stderr from subprocess.
+* --verbose: stop suppressing stdout/stderr from subprocesses.
+* --log: pipe the game log of each active character into its own log file, respectively.
 
 ## Config typings
 ```ts
@@ -33,3 +34,5 @@ interface ActiveCharacter {
   script: string | undefined | null;
 };
 ```
+## Known errors
+* Sometimes not all _active_ characters are getting logged in. The client has to be restarted at this point.

@@ -19,8 +19,6 @@ const window = (new JSDOM(args.html, {
   pretendToBeVisual: true,
 })).window;
 
-// TODO: could you realiably overwrite the server_addr / server_port before the resources are loaded?
-
 // shorter version for log_in
 const login = () => window.log_in(window.user_id, args.characterId, window.user_auth);
 
