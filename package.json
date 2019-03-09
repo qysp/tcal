@@ -4,6 +4,8 @@
   "description": "A terminal client for Adventure Land.",
   "main": "index.js",
   "dependencies": {
+    "blessed": "^0.1.81",
+    "blessed-contrib": "^4.8.11",
     "jsdom": "^13.2.0",
     "minimist": "^1.2.0",
     "request": "^2.88.0",

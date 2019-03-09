@@ -5,20 +5,19 @@ const request = require('request-promise-native');
 
 const { baseUrl, userAgent } = require('./globals')
 
-class AdventureLandClient {
-  /**
-   * Initialize the client for Adventure Land.
-   * @param {Object} config config for the Adventure Land client
-   * @param {String} config.email email address for login
-   * @param {String} config.password password for login
-   */
-  constructor(config) {
-    this.url = baseUrl;
-    this.email = config.email;
-    this.password = config.password;
-    this.loggedIn = false;
-  }
-};
+
+/**
+ * Initialize the client for Adventure Land.
+ * @param {Object} config config for the Adventure Land client
+ * @param {String} config.email email address for login
+ * @param {String} config.password password for login
+ */
+function AdventureLandClient(config) {
+  this.url = baseUrl;
+  this.email = config.email;
+  this.password = config.password;
+  this.loggedIn = false;
+}
 
 /**
  * Try to log in to Adventure Land.
@@ -277,13 +276,13 @@ AdventureLandClient.prototype.saveCode = async function(slot, slotName, code) {
 /**
  * Load some sort of data from Adventure Land (i.e. HTML, JavaScript files).
  * @param {String} params query parameters or a file's path
- * @param {Boolean} authneeded whether the session cookie should be used for the request
+ * @param {Boolean} authNeeded whether the session cookie should be used for the request
  * @returns {any} the response body
  */
 AdventureLandClient.prototype.getData = async function(params, authNeeded=false) {
   const headers = {
     // just accept anything
-    Accept: '*/*',
+    Accept: 'application/json, text/html, text/javascript, */*',
     'User-Agent': userAgent,
   }
   

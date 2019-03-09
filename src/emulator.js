@@ -8,6 +8,7 @@ const args = {
   html: argv[0],
   characterId: argv[1],
   script: argv[2],
+  interfaceEnabled: argv[3] === 'true', // parameters are stringified
 };
 
 const window = (new JSDOM(args.html, {
@@ -47,36 +48,9 @@ window.addEventListener('load', () => {
     if (args.script) {
       window.start_runner(null, args.script);
     }
-    setInterval(() => {
-      // TODO: support the merchant with update about gold, items, etc. (needs some special property to recognize)
-      if (!window.character || window.character.ctype === 'merchant') {
-        return;
-      }
-      
-      const target = window.ctarget && window.ctarget.mtype
-        ? window.G.monsters[window.ctarget.mtype].name
-        : undefined;
-
-      process.send({
-        type: globals.UPDATE,
-        data: {
-          items: window.character.items,
-          level: window.character.level,
-          gold: window.character.gold,
-          xp: window.character.xp,
-          max_xp: window.character.max_xp,
-          hp: window.character.hp,
-          mp: window.character.mp,
-          max_hp: window.character.max_hp,
-          max_mp: window.character.max_mp,
-          rip: window.character.rip,
-          damage: damage,
-          target: target,
-        }
-      });
-      // reset damage
-      damage = 0;
-    }, 1000);
+    if (args.interfaceEnabled) {
+      sendUpdates();
+    }
   });
 
   window.socket.on(globals.HIT, data => {
@@ -113,3 +87,39 @@ window.addEventListener('load', () => {
     });
   });
 });
+
+/**
+ * Send game updates with character specific stats once per second.
+ */
+function sendUpdates() {
+  setInterval(() => {
+    // TODO: support the merchant with update about gold, items, etc. (needs some special property to recognize)
+    if (!window.character || window.character.ctype === 'merchant') {
+      return;
+    }
+    
+    const target = window.ctarget && window.ctarget.mtype
+      ? window.G.monsters[window.ctarget.mtype].name
+      : undefined;
+
+    process.send({
+      type: globals.UPDATE,
+      data: {
+        items: window.character.items,
+        level: window.character.level,
+        gold: window.character.gold,
+        xp: window.character.xp,
+        max_xp: window.character.max_xp,
+        hp: window.character.hp,
+        mp: window.character.mp,
+        max_hp: window.character.max_hp,
+        max_mp: window.character.max_mp,
+        rip: window.character.rip,
+        damage: damage,
+        target: target,
+      }
+    });
+    // reset damage
+    damage = 0;
+  }, 1000);
+}

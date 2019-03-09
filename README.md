@@ -13,6 +13,7 @@ Heavily inspired by [NexusNull's Adventure Land Bot](https://github.com/NexusNul
 * `--fetch`: fetch your characters and the available servers. Overwrites existing character/server JSON files in the `data` folder.
 * `--verbose`: stop suppressing stdout/stderr from subprocesses.
 * `--log`: pipe the game log of each active character into its own log file, respectively. Does not append to existing files.
+* `--interface`: load up a terminal interface using [Blessed](https://github.com/chjj/blessed) that shows the DPS of your characters. GPS, XPPS and other graphs/stats of your characters coming soon&trade;.
 
 ## Config typings
 ```ts

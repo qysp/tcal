@@ -8,7 +8,7 @@ const isFunction = fn => typeof fn === 'function';
  * Return a promise of the function's exection in a try/catch block.
  * @param {Function} fn function to try/catch
  * @param {...any} args args to apply to the function, optional
- * @returns {Promise} a promise that resolves the function's return value or rejects the caught exception
+ * @returns {Promise<any>} a promise that resolves the function's return value or rejects the caught exception
  */
 function tryTo(fn, ...args) {
   return new Promise((resolve, reject) => {
@@ -27,7 +27,6 @@ function tryTo(fn, ...args) {
  */
 function handleError(error, exit=false) {
   if (error) {
-    // TODO: log error in a file (maybe?)
     console.error(error instanceof Error ? error.message : error);
   }
   // non-zero exit
@@ -56,18 +55,20 @@ function validateConfig(config) {
     if (config.active.length > 4) {
       reject('Maximum allowed number of active characters is 4');
     }
-    if (!config.active.every(c => isObject(c))) {
+    if (config.active.some(c => !isObject(c))) {
       reject('Every element in the array property \'active\' must be an object');
     }
-    if (!config.active.every(c => 
-      isString(c.name) && c.name !== '' &&
-      isString(c.region) && c.region !== '' &&
-      isString(c.server) && !c.server !== '' &&
-      (isString(c.script) || !c.script))) {
-        reject('Type error in at least one of the properties of your active characters');
+    if (config.active.some(c =>
+        !isString(c.name)
+        || c.name === ''
+        || !isString(c.region)
+        || c.region === ''
+        || !isString(c.server)
+        || c.server === ''
+        || !isString(c.script)
+        && c.script !== undefined)) {
+      reject('Type error in at least one of the properties of your active characters');
     }
-
-    // config file seems to be valid
     resolve();
   });
 }

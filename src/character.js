@@ -1,36 +1,75 @@
-class DataProcessor {
-  /**
-   * Initialize the data processor.
-   * @param {String} id character's id
-   * @param {String} name character's name
-   * @param {String} cls character's class
-   * @param {Number} timeFrame time frame for the X per second calculations
-   */
-  constructor(id, name, cls, timeFrame) {
-    this.id = id;
-    this.name = name;
-    this.class = cls;
-    this.timeFrame = timeFrame;
+const { createWriteStream } = require('fs');
 
-    this.damageData = [];
-    this.goldData = [];
-    this.xpData = [];
+/**
+ * Create a character instance.
+ * @param {String} id 
+ * @param {String} name 
+ * @param {String} cls 
+ */
+function Character(id, name, cls) {
+  this.id = id;
+  this.name = name;
+  this.cls = cls;
+
+  this.online = false;
+}
+
+/**
+ * Create a write stream to a logfile.
+ * @param {String} path the path to the logfile
+ */
+Character.prototype.createLog = function(path) {
+  this.logfileStream = createWriteStream(path);
+}
+
+/**
+ * Log a message into the character's file using the stream.
+ * @param {String} message the message to log
+ */
+Character.prototype.log = function(message) {
+  if (this.logfileStream) {
+    this.logfileStream.write(`${message}\n`);
   }
 }
 
 /**
- * Process the data from a status update of a subprocess.
- * @param {Object} data the status update
+ * Close the logfile stream.
  */
-DataProcessor.prototype.update = function(data) {
+Character.prototype.closeLog = function() {
+  if (this.logfileStream) {
+    this.logfileStream.close();
+  }
+}
+
+/**
+ * Initialize the status update data processor.
+ * @param {Number} timeFrame time frame in seconds for which to keep specific data like damage, gold or xp
+ */
+Character.prototype.initProcessor = function(timeFrame) {
+  this.timeFrame = timeFrame;
+
+  this.damageData = [];
+  this.goldData = [];
+  this.xpData = [];
+}
+
+/**
+ * Process the data of a status update from a subprocess.
+ * @param {Object} data the status update data
+ */
+Character.prototype.processUpdate = function(data) {
+  if (!this.timeFrame) {
+    throw new Error('Data processor has not been initialized yet');
+  }
+  this.items = [];
   this.level = data.level;
   this.rip = data.rip;
   this.target = data.target;
   this.invSlots = data.items.length;
-  this.usedInvSlots = data.items.filter(i => i !== null).length;
-  this.items = [];
+  this.usedInvSlots = data.items.filter(i => i).length;
 
-  // accumulate item's quantity by name/level
+  // accumulate all items + quantity by name/level
+  // TODO: needed?
   data.items
     .filter(i => i !== null)
     .forEach(item => {
@@ -74,4 +113,4 @@ DataProcessor.prototype.update = function(data) {
   this.xpps = this.xpData.reduce((acc, cur) => acc + cur) / this.xpData.length;
 }
 
-module.exports = DataProcessor;
+module.exports = Character;

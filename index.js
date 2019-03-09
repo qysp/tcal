@@ -4,10 +4,10 @@ const argv = require('minimist')(process.argv.slice(2));
 const { fork } = require('child_process');
 
 const AdventureLandClient = require('./src/client');
-const DataProcessor = require('./src/processor');
+const TerminalInterface = require('./src/interface');
+const Character = require('./src/character');
 const globals = require('./src/globals');
 const { tryTo, handleError, validateConfig, } = require('./src/helpers');
-
 
 (async () => {
   // try to require the necessary config file
@@ -32,6 +32,7 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
 
   // fetch characters if needed/requested
   if (argv.fetch || !fs.existsSync(charactersPath)) {
+    console.log('Fetching characters');
     const characters = await client.getCharacters()
       .then(chars => chars.map(c => ({ id: c.id, name: c.name, type: c.type })))
       .catch(err => handleError(err, true));
@@ -40,6 +41,7 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
 
   // fetch servers if needed/requested
   if (argv.fetch || !fs.existsSync(serversPath)) {
+    console.log('Fetching servers');
     const servers = await client.getServers()
       .catch(err => handleError(err, true));
     fs.writeFileSync(serversPath, JSON.stringify(servers, null, 4));
@@ -54,65 +56,68 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
   let mainPageHtml = await client.getData('?no_html=true&no_graphics=true', true)
     .catch(err => handleError(err, true));
 
-  // to minimize the the read operations
-  const scriptCache = {};
-
-  const CHARACTERS = {};
-  config.active.forEach(c => {
-    CHARACTERS[c.name] = { online: false };
-    if (argv.log) {
-      CHARACTERS[c.name].stream = fs.createWriteStream(path.join(logsPath, `${c.name}.log`));
-      // write current date at the top of the file
-      CHARACTERS[c.name].stream.write(`${new Date().toISOString()}\n\n`);
-    }
-  });
+  let terminalInterface;
+  if (argv.interface) {
+    terminalInterface = new TerminalInterface();
+  }
 
   for (const activeChar of config.active) {
-    // get and parse characters.json
+    let script;
+
+    // find matching character
     const characterData = await tryTo(fs.readFileSync, charactersPath)
-      .then(buf => JSON.parse(buf.toString()))
+      .then(buf => JSON.parse(buf.toString()).find(c =>
+        activeChar.name.toLowerCase() === c.name.toLowerCase()))
       .catch(err => handleError(err, true));
 
-    // get and parse servers.json
-    const serverData = await tryTo(fs.readFileSync, serversPath)
-      .then(buf => JSON.parse(buf.toString()))
-      .catch(err => handleError(err, true));
-
-    // find matching character (for the character id)
-    const activeCharData = characterData.find(c => 
-      activeChar.name.toLowerCase() === c.name.toLowerCase());
-
-    if (!activeCharData) {
+    if (!characterData) {
       handleError(`Character '${activeChar.name}' does not exist in the data records`, true);
     }
 
-    // find matching server (for the server ip/port)
-    const activeServerData = serverData.find(s => 
-      activeChar.region.toLowerCase() === s.region.toLowerCase() &&
-      activeChar.server.toLowerCase() === s.name.toLowerCase());
+    // find matching server
+    const serverData = await tryTo(fs.readFileSync, serversPath)
+      .then(buf => JSON.parse(buf.toString()).find(s => 
+        activeChar.region.toLowerCase() === s.region.toLowerCase() &&
+        activeChar.server.toLowerCase() === s.name.toLowerCase()))
+      .catch(err => handleError(err, true));
     
-    if (!activeServerData) {
+    if (!serverData) {
       handleError(`Server: '${activeChar.region} ${activeChar.server}' does not exist in the data records`, true);
     }
 
-    if (activeChar.script && !scriptCache[activeChar.script]) {
-      // get the user's script
-      const scriptPath = path.join(__dirname, 'scripts', activeChar.script);
-      scriptCache[activeChar.script] = await tryTo(fs.readFileSync, scriptPath)
+    // get the user's script (if defined)
+    if (activeChar.script) {
+      script = await tryTo(fs.readFileSync, path.join(__dirname, 'scripts', activeChar.script))
         .then(buf => buf.toString())
         .catch(err => handleError(err, true));
     }
 
+    const character = new Character(
+      characterData.id,
+      activeChar.name,
+      characterData.type
+    );
+
+    if (argv.log) {
+      character.createLog(path.join(logsPath, `${activeChar.name}.log`));
+      character.log(new Date().toISOString());
+    }
+
+    if (argv.interface) {
+      character.initProcessor(60);
+    }
+
     // TODO: find a cleaner way to set the desired server
     mainPageHtml = mainPageHtml
-      .replace(/server_addr\s?=\s?"\w+\d+\.adventure.land"/, `server_addr="${activeServerData.ip}"`)
-      .replace(/server_port\s?=\s?"\d+"/, `server_port="${activeServerData.port}"`);
+      .replace(/server_addr\s?=\s?"\w+\d+\.adventure.land"/, `server_addr="${serverData.ip}"`)
+      .replace(/server_port\s?=\s?"\d+"/, `server_port="${serverData.port}"`);
 
     // args for the subprocess
     const args = [
       mainPageHtml,
-      activeCharData.id,
-      scriptCache[activeChar.script],
+      character.id,
+      script,
+      argv.interface,
     ];
 
     const stdioOpts = [ 'ipc' ];
@@ -127,43 +132,58 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
       { stdio: stdioOpts }
     );
 
-    console.log(`Created subprocess for: ${activeChar.name}`);
-
     subprocess
       .on('message', msg => {
         switch (msg.type) {
           // character successfully logged in
           case globals.START:
-            CHARACTERS[activeChar.name].online = true;
-            CHARACTERS[activeChar.name].processor = new DataProcessor(
-              activeCharData.id,
-              activeChar.name,
-              activeCharData.type
-            );
-            console.log(`Successfully logged in: ${activeChar.name}`);
+            character.online = true;
+            if (argv.interface) {
+              // log in interface
+            } else {
+              console.log(`Successfully logged in: ${activeChar.name}`);
+            }
             break;
+
           // disconnect signal sent
           case globals.DISCONNECT:
-            CHARACTERS[activeChar.name].online = false;
+            character.online = false;
             if (argv.log) {
-              CHARACTERS[activeChar.name].stream.close();
+              character.log(`[DISCONNECTED] ${msg.data}`);
+              character.closeLog();
+            }
+            if (argv.interface) {
+              // log in interface
+            } else {
+              console.log(`Disconnected: ${activeChar.name} - reason: ${msg.data}`);
             }
             subprocess.kill();
-            console.log(`Disconnected: ${activeChar.name}\n${msg.data}`);
             break;
+
           // generic game error, e.g. while logging in
           case globals.GAMEERROR:
-            console.log(`Game error: ${activeChar.name}\n${msg.data}`);
+            if (argv.log) {
+              character.log(`[ERROR] ${msg.data}`);
+            }
+            if (argv.interface) {
+              // log in interface
+            } else {
+              console.log(`Game error: ${activeChar.name} - message: ${msg.data}`);
+            }
             break;
+
           // generic game log, e.g. 'You killed a Goo'
           case globals.GAMELOG:
             if (argv.log) {
-              CHARACTERS[activeChar.name].stream.write(`${msg.data}\n`);
+              character.log(`[GAME] ${msg.data}`);
             }
             break;
-          // custom (raw) character data; sent once per second 
+
+          // custom (raw) character data; sent once per second
+          // only if the `--interface` start parameter is used
           case globals.UPDATE:
-            CHARACTERS[activeChar.name].processor.update(msg.data);
+            character.processUpdate(msg.data);
+            terminalInterface.setData(character)
             break;
         }
       })
