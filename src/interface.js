@@ -4,14 +4,12 @@ const Character = require('./character');
 
 /**
  * Initialize the terminal interface.
- * @param {Object} screenOptions options for the blessed screen
  */
-function TerminalInterface(screenOptions={}) {
+function TerminalInterface() {
   this.screen = blessed.screen({
     smartCSR: true,
     autoPadding: true,
     title: 'Terminal Client for Adventure Land',
-    ...screenOptions,
   });
 
   this.damageData = [];
@@ -31,7 +29,7 @@ function TerminalInterface(screenOptions={}) {
     // row, col
     0, 0,
     // rowSpan, colSpan
-    6, 6,
+    6, 5,
     contrib.line, 
     { showNthLabel: 5,
       label: 'Damage',
@@ -39,10 +37,20 @@ function TerminalInterface(screenOptions={}) {
       legend: { width: 10 } }
   );
 
+  this.gameLog = this.grid.set(
+    0, 5,
+    6, 1,
+    contrib.log,
+    { fg: "white",
+    selectedFg: "white",
+    label: 'Game Log' }
+  );
+
   this.screen.key([ 'escape', 'q', 'C-c' ], () => process.exit(0));
 
   this.screen.on('resize', () => {
     this.damageLine.emit('attach');
+    this.gameLog.emit('attach');
   });
 
   this.screen.render();
@@ -50,7 +58,7 @@ function TerminalInterface(screenOptions={}) {
 
 /**
  * Set the status update data.
- * @param {Character} character
+ * @param {Character} character character object with the processed data
  */
 TerminalInterface.prototype.setData = function(character) {
   if (!this.screen) {
@@ -78,6 +86,10 @@ TerminalInterface.prototype.setData = function(character) {
   this.damageLine.setData(this.damageData);
 
   this.screen.render();
+}
+
+TerminalInterface.prototype.log = function(message, character) {
+  this.gameLog.log(`[${character ? character : 'GENERAL'}] ${message}`);
 }
 
 module.exports = TerminalInterface;

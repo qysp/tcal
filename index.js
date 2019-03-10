@@ -117,7 +117,6 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
       mainPageHtml,
       character.id,
       script,
-      argv.interface,
     ];
 
     const stdioOpts = [ 'ipc' ];
@@ -137,25 +136,23 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
         switch (msg.type) {
           // character successfully logged in
           case globals.START:
-            character.online = true;
             if (argv.interface) {
-              // log in interface
+              terminalInterface.log('Logged in', activeChar.name);
             } else {
-              console.log(`Successfully logged in: ${activeChar.name}`);
+              console.log(`[LOGIN] ${activeChar.name}`);
             }
             break;
 
           // disconnect signal sent
           case globals.DISCONNECT:
-            character.online = false;
             if (argv.log) {
               character.log(`[DISCONNECTED] ${msg.data}`);
               character.closeLog();
             }
             if (argv.interface) {
-              // log in interface
+              terminalInterface.log(`Disconnected: ${msg.data}`, activeChar.name);
             } else {
-              console.log(`Disconnected: ${activeChar.name} - reason: ${msg.data}`);
+              console.log(`[${activeChar.name}] Disconnected: ${msg.data}`);
             }
             subprocess.kill();
             break;
@@ -166,9 +163,9 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
               character.log(`[ERROR] ${msg.data}`);
             }
             if (argv.interface) {
-              // log in interface
+              terminalInterface.log(`Game error: ${msg.data}`, activeChar.name);
             } else {
-              console.log(`Game error: ${activeChar.name} - message: ${msg.data}`);
+              console.log(`[${activeChar.name}] Game error: ${msg.data}`);
             }
             break;
 
@@ -177,13 +174,17 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
             if (argv.log) {
               character.log(`[GAME] ${msg.data}`);
             }
+            if (argv.interface) {
+              terminalInterface.log(msg.data, activeChar.name);
+            }
             break;
 
           // custom (raw) character data; sent once per second
-          // only if the `--interface` start parameter is used
           case globals.UPDATE:
             character.processUpdate(msg.data);
-            terminalInterface.setData(character)
+            if (argv.interface) {
+              terminalInterface.setData(character);
+            }
             break;
         }
       })

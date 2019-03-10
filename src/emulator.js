@@ -8,7 +8,6 @@ const args = {
   html: argv[0],
   characterId: argv[1],
   script: argv[2],
-  interfaceEnabled: argv[3] === 'true', // parameters are stringified
 };
 
 const window = (new JSDOM(args.html, {
@@ -48,9 +47,7 @@ window.addEventListener('load', () => {
     if (args.script) {
       window.start_runner(null, args.script);
     }
-    if (args.interfaceEnabled) {
-      sendUpdates();
-    }
+    sendUpdates();
   });
 
   window.socket.on(globals.HIT, data => {
