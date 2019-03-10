@@ -2,16 +2,14 @@ const { createWriteStream } = require('fs');
 
 /**
  * Create a character instance.
- * @param {String} id 
- * @param {String} name 
- * @param {String} cls 
+ * @param {String} id character's id
+ * @param {String} name character's name
+ * @param {String} cls character's class/type
  */
 function Character(id, name, cls) {
   this.id = id;
   this.name = name;
   this.cls = cls;
-
-  this.online = false;
 }
 
 /**
@@ -89,7 +87,7 @@ Character.prototype.processUpdate = function(data) {
 
   // set (max) xp/hp/mp and the percentage value
   this.xp = data.xp;
-  this.maxXp = data.max_xp
+  this.maxXp = data.max_xp;
   this.xpPct = ((data.xp / data.max_xp) * 100).toFixed(2);
   this.hp = data.hp;
   this.maxHp = data.max_hp;
@@ -102,7 +100,7 @@ Character.prototype.processUpdate = function(data) {
   if (this.damageData.length === this.timeFrame) this.damageData.shift();
   if (this.goldData.length === this.timeFrame) this.goldData.shift();
   if (this.xpData.length === this.timeFrame) this.xpData.shift();
-  this.damageData.push(data.damage)
+  this.damageData.push(data.damage);
   this.goldData.push(data.gold);
   this.xpData.push(data.xp);
 

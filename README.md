@@ -34,6 +34,7 @@ interface ActiveCharacter {
 
 ## Feature ideas
 - [ ] Terminal interface with DPS, GPS, XPPS, nice graphs, etc. (e.g. with [Blessed](https://github.com/chjj/blessed))
+- [ ] Log analyzer for an easy overview of killed monsters, loot, etc.
 
 ## Known errors
 * Annoying 'errors' getting printed in verbose mode, especially `TypeError: Cannot read property 'name/width/...' of null`. Can't figure out where exactly the error is being raised since the printed 'error' is just a huge pile of code and not a real stacktrace.
