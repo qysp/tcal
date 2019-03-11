@@ -19,10 +19,10 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
     .catch(err => handleError(err, true));
 
   // init Adventure Land client
-  const client = new AdventureLandClient(config);
+  const client = new AdventureLandClient();
 
   // login, on error exit
-  await client.login()
+  await client.login(config.email, config.password)
     .catch(err => handleError(err, true));
 
   // build the character's/server's file path

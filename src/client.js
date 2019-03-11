@@ -7,28 +7,24 @@ const { baseUrl, userAgent } = require('./globals')
 
 
 /**
- * Initialize the client for Adventure Land.
- * @param {Object} config config for the Adventure Land client
- * @param {String} config.email email address for login
- * @param {String} config.password password for login
+ * Initialize the Adventure Land client.
  */
-function AdventureLandClient(config) {
+function AdventureLandClient() {
   this.url = baseUrl;
-  this.email = config.email;
-  this.password = config.password;
   this.loggedIn = false;
 }
 
 /**
  * Try to log in to Adventure Land.
- * On failure exit the program with an error message.
- * @returns {Promise<void>} an empty promise which resolves on successful login
+ * @param {string} email user's login email address
+ * @param {string} password user's login password
+ * @returns {Promise<void>} an empty Promise which resolves on successful login
  */
-AdventureLandClient.prototype.login = function () {
+AdventureLandClient.prototype.login = function (email, password) {
   const form = {
     arguments: JSON.stringify({
-      email: this.email,
-      password: this.password,
+      email: email,
+      password: password,
       only_login: true
     }),
     method: 'signup_or_login',
