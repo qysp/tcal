@@ -1,10 +1,8 @@
-const helpers = {};
-
-helpers.isString = str => typeof str === 'string';
-helpers.isNumber = num => typeof num === 'number';
-helpers.isBoolean = bool => typeof bool === 'boolean';
-helpers.isObject = obj => typeof obj === 'object';
-helpers.isFunction = fn => typeof fn === 'function';
+const isString = str => typeof str === 'string';
+const isNumber = num => typeof num === 'number';
+const isBoolean = bool => typeof bool === 'boolean';
+const isObject = obj => typeof obj === 'object';
+const isFunction = fn => typeof fn === 'function';
 
 /**
  * Return a promise of the function's exection in a try/catch block.
@@ -12,7 +10,7 @@ helpers.isFunction = fn => typeof fn === 'function';
  * @param {...any} [args] args to apply to the function
  * @returns {Promise<any>} a promise that resolves the function's return value or rejects the caught exception
  */
-helpers.tryTo = function (fn, ...args) {
+function tryTo(fn, ...args) {
   return new Promise((resolve, reject) => {
     try {
       resolve(fn.apply(null, args));
@@ -27,7 +25,7 @@ helpers.tryTo = function (fn, ...args) {
  * @param {(string|Error)} error error to log
  * @param {boolean} [exit=false] whether or not to exit the program
  */
-helpers.handleError = function (error, exit=false) {
+function handleError(error, exit=false) {
   if (error) {
     console.error(error instanceof Error ? error.message : error);
   }
@@ -47,7 +45,7 @@ helpers.handleError = function (error, exit=false) {
  * @param {string} [config.active[].script] active character's script filename
  * @returns {Promise<(string|undefined)>} a Promise that resolves if everything is correctly validated
  */
-helpers.validateConfig = function (config) {
+function validateConfig(config) {
   return new Promise((resolve, reject) => {
     if (!isString(config.email) || config.email === '') {
       reject('Must specify an email address in the config file');
@@ -83,4 +81,14 @@ helpers.validateConfig = function (config) {
 }
 
 
-module.exports = helpers;
+module.exports = {
+  isString,
+  isNumber,
+  isBoolean,
+  isObject,
+  isFunction,
+
+  tryTo,
+  handleError,
+  validateConfig,
+};
