@@ -41,9 +41,9 @@ Character.prototype.closeLog = function() {
 
 /**
  * Initialize the status update data processor.
- * @param {Number} timeFrame time frame in seconds for which to keep specific data like damage, gold or xp
+ * @param {number} timeFrame time frame in seconds for which to keep specific data like damage, gold or xp
  */
-Character.prototype.initProcessor = function(timeFrame) {
+Character.prototype.initProcessor = function (timeFrame) {
   this.timeFrame = timeFrame;
 
   this.damageData = [];
@@ -54,8 +54,23 @@ Character.prototype.initProcessor = function(timeFrame) {
 /**
  * Process the data of a status update from a subprocess.
  * @param {Object} data the status update data
+ * @param {Object[]} data.items character's items
+ * @param {string} data.items[].name item's name
+ * @param {number} [data.items[].q] item's quanitity
+ * @param {number} [data.items[].level] item's (upgrade) level
+ * @param {number} data.level character's level
+ * @param {boolean} data.rip whether the character is dead
+ * @param {(string|undefined)} data.target character's target name or undefined (no target)
+ * @param {number} data.xp character's current xp
+ * @param {number} data.max_xp character's maximum xp for this level
+ * @param {number} data.hp character's current hp
+ * @param {number} data.max_hp character's maximum hp for this level
+ * @param {number} data.mp character's current mp
+ * @param {number} data.max_mp character's maximum mp for this level
+ * @param {number} data.damage character's damage done within the last time period (i.e. 1 second)
+ * @param {number} data.gold character's current gold
  */
-Character.prototype.processUpdate = function(data) {
+Character.prototype.processUpdate = function (data) {
   if (!this.timeFrame) {
     throw new Error('Data processor has not been initialized yet');
   }

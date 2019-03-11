@@ -60,7 +60,7 @@ function TerminalInterface() {
  * Set the status update data.
  * @param {Character} character character object with the processed data
  */
-TerminalInterface.prototype.setData = function(character) {
+TerminalInterface.prototype.setData = function (character) {
   if (!this.screen) {
     throw new Error('The interface has to be initialized before setting data');
   }
@@ -88,8 +88,13 @@ TerminalInterface.prototype.setData = function(character) {
   this.screen.render();
 }
 
-TerminalInterface.prototype.log = function(message, character) {
-  this.gameLog.log(`[${character ? character : 'GENERAL'}] ${message}`);
+/**
+ * Append a message to the interface's game log.
+ * @param {string} message message to log
+ * @param {string} [name] character name related to the message
+ */
+TerminalInterface.prototype.log = function (message, name) {
+  this.gameLog.log(`[${name ? name : 'GENERAL'}] ${message}`);
 }
 
 module.exports = TerminalInterface;

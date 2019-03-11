@@ -22,8 +22,9 @@ function AdventureLandClient(config) {
 /**
  * Try to log in to Adventure Land.
  * On failure exit the program with an error message.
+ * @returns {Promise<void>} an empty promise which resolves on successful login
  */
-AdventureLandClient.prototype.login = async function() {
+AdventureLandClient.prototype.login = function () {
   const form = {
     arguments: JSON.stringify({
       email: this.email,
@@ -39,7 +40,7 @@ AdventureLandClient.prototype.login = async function() {
     'Content-Type': 'application/x-www-form-urlencoded',
   }
 
-  return await request
+  return request
     .post({
       uri: `${this.url}/api/signup_or_login`,
       form: form,
@@ -65,9 +66,9 @@ AdventureLandClient.prototype.login = async function() {
 
 /**
  * Fetch the characters of the logged in account.
- * @returns {Array} an array of objects where each object represents a character
+ * @returns {Promise<any[]>} an array of objects where each object represents a character
  */
-AdventureLandClient.prototype.getCharacters = async function() {
+AdventureLandClient.prototype.getCharacters = function () {
   if (!this.loggedIn) {
     throw new Error('Must login before fetching characters');
   }
@@ -80,7 +81,7 @@ AdventureLandClient.prototype.getCharacters = async function() {
     'Content-Type': 'application/x-www-form-urlencoded',
   };
 
-  return await request
+  return request
     .post({
       uri: `${this.url}/api/servers_and_characters`,
       form: form,
@@ -94,9 +95,9 @@ AdventureLandClient.prototype.getCharacters = async function() {
 
 /**
  * Fetch the available servers.
- * @returns {Array} an array of objects where each objects represents a server
+ * @returns {Promise<any[]>} an array of objects where each objects represents a server
  */
-AdventureLandClient.prototype.getServers = async function() {
+AdventureLandClient.prototype.getServers = function () {
   if (!this.loggedIn) {
     throw new Error('Must login before fetching servers');
   }
@@ -109,7 +110,7 @@ AdventureLandClient.prototype.getServers = async function() {
     'Content-Type': 'application/x-www-form-urlencoded',
   };
 
-  return await request
+  return request
     .post({
       uri: `${this.url}/api/get_servers`,
       form: form,
@@ -126,9 +127,9 @@ AdventureLandClient.prototype.getServers = async function() {
 
 /**
  * Get the user's authentication token.
- * @returns {String} user auth token
+ * @returns {Promise<string>} user's auth token
  */
-AdventureLandClient.prototype.getUserAuth = async function() {
+AdventureLandClient.prototype.getUserAuth = function () {
   if (!this.loggedIn) {
     throw new Error('Must login before fetching user authentication');
   }
@@ -139,7 +140,7 @@ AdventureLandClient.prototype.getUserAuth = async function() {
     'User-Agent': userAgent,
   };
 
-  return await request
+  return request
     .get({
       uri: this.url,
       headers: headers,
@@ -156,12 +157,12 @@ AdventureLandClient.prototype.getUserAuth = async function() {
 
 /**
  * Create a character.
- * @param {String} name the character's name
- * @param {String} cls the character's class
- * @param {String} gender the character's gender
- * @returns {Boolean} `true` on success
+ * @param {string} name the character's name
+ * @param {string} cls the character's class
+ * @param {string} gender the character's gender
+ * @returns {Promise<boolean>} `true` on success
  */
-AdventureLandClient.prototype.createCharacter = async function(name, cls, gender) {
+AdventureLandClient.prototype.createCharacter = function (name, cls, gender) {
   if (!this.loggedIn) {
     throw new Error('Must login before fetching user authentication');
   }
@@ -178,7 +179,7 @@ AdventureLandClient.prototype.createCharacter = async function(name, cls, gender
     'Content-Type': 'application/x-www-form-urlencoded',
   };
 
-  return await request
+  return request
     .post({
       uri: `${this.url}/api/create_character`,
       headers: headers,
@@ -195,10 +196,10 @@ AdventureLandClient.prototype.createCharacter = async function(name, cls, gender
 
 /**
  * Delete a character.
- * @param {String} name the character's name
- * @returns {Boolean} `true` on success
+ * @param {string} name the character's name
+ * @returns {Promise<boolean>} `true` on success
  */
-AdventureLandClient.prototype.deleteCharacter = async function(name) {
+AdventureLandClient.prototype.deleteCharacter = function (name) {
   if (!this.loggedIn) {
     throw new Error('Must login before fetching user authentication');
   }
@@ -215,7 +216,7 @@ AdventureLandClient.prototype.deleteCharacter = async function(name) {
     'Content-Type': 'application/x-www-form-urlencoded',
   };
 
-  return await request
+  return request
     .post({
       uri: `${this.url}/api/delete_character`,
       headers: headers,
@@ -232,12 +233,12 @@ AdventureLandClient.prototype.deleteCharacter = async function(name) {
 
 /**
  * Upload and save code to a slot.
- * @param {Number} slot the slot number of the saved code
- * @param {String} slotName the name of the slot
- * @param {String} code the code to upload
- * @returns {Boolean} `true` on success
+ * @param {number} slot the slot number of the saved code
+ * @param {string} slotName the name of the slot
+ * @param {string} code the code to upload
+ * @returns {Promise<boolean>} `true` on success
  */
-AdventureLandClient.prototype.saveCode = async function(slot, slotName, code) {
+AdventureLandClient.prototype.saveCode = function (slot, slotName, code) {
   if (!this.loggedIn) {
     throw new Error('Must login before fetching user authentication');
   }
@@ -258,7 +259,7 @@ AdventureLandClient.prototype.saveCode = async function(slot, slotName, code) {
     'Content-Type': 'application/x-www-form-urlencoded',
   };
 
-  return await request
+  return request
     .post({
       uri: `${this.url}/api/save_code`,
       headers: headers,
@@ -275,11 +276,11 @@ AdventureLandClient.prototype.saveCode = async function(slot, slotName, code) {
 
 /**
  * Load some sort of data from Adventure Land (i.e. HTML, JavaScript files).
- * @param {String} params query parameters or a file's path
- * @param {Boolean} authNeeded whether the session cookie should be used for the request
- * @returns {any} the response body
+ * @param {string} params query parameters or a file's path
+ * @param {boolean} [authNeeded=false] whether the session cookie should be used for the request
+ * @returns {Promise<any>} the response body
  */
-AdventureLandClient.prototype.getData = async function(params, authNeeded=false) {
+AdventureLandClient.prototype.getData = function (params, authNeeded=false) {
   const headers = {
     // just accept anything
     Accept: 'application/json, text/html, text/javascript, */*',
@@ -293,7 +294,7 @@ AdventureLandClient.prototype.getData = async function(params, authNeeded=false)
     Object.assign(headers, { Cookie: `auth=${this.sessionCookie}`, });
   }
 
-  return await request.get({
+  return request.get({
     uri: `${this.url}/${params}`,
     headers: headers
   });

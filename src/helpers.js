@@ -1,16 +1,18 @@
-const isString = str => typeof str === 'string';
-const isNumber = num => typeof num === 'number';
-const isBoolean = bool => typeof bool === 'boolean';
-const isObject = obj => typeof obj === 'object';
-const isFunction = fn => typeof fn === 'function';
+const helpers = {};
+
+helpers.isString = str => typeof str === 'string';
+helpers.isNumber = num => typeof num === 'number';
+helpers.isBoolean = bool => typeof bool === 'boolean';
+helpers.isObject = obj => typeof obj === 'object';
+helpers.isFunction = fn => typeof fn === 'function';
 
 /**
  * Return a promise of the function's exection in a try/catch block.
- * @param {Function} fn function to try/catch
- * @param {...any} args args to apply to the function, optional
+ * @param {function} fn function to try/catch
+ * @param {...any} [args] args to apply to the function
  * @returns {Promise<any>} a promise that resolves the function's return value or rejects the caught exception
  */
-function tryTo(fn, ...args) {
+helpers.tryTo = function (fn, ...args) {
   return new Promise((resolve, reject) => {
     try {
       resolve(fn.apply(null, args));
@@ -22,10 +24,10 @@ function tryTo(fn, ...args) {
 
 /**
  * Prints the error and exits the program if `exit` is set to `true`.
- * @param {String|Error} error error to log
- * @param {Boolean} exit whether or not to exit the program, default: `false`
+ * @param {(string|Error)} error error to log
+ * @param {boolean} [exit=false] whether or not to exit the program
  */
-function handleError(error, exit=false) {
+helpers.handleError = function (error, exit=false) {
   if (error) {
     console.error(error instanceof Error ? error.message : error);
   }
@@ -35,10 +37,17 @@ function handleError(error, exit=false) {
 
 /**
  * Validates (mostly typechecks) the user's configurations.
- * @param {Object} config the user's configurations
- * @returns {Promise} a promise that doesn't resolve anything and rejects with an error message
+ * @param {Object} config user's configurations
+ * @param {string} config.email user's email
+ * @param {string} config.password user's password
+ * @param {Object[]} config.active user's active characters
+ * @param {string} config.active[].name active character's name
+ * @param {string} config.active[].region active character's region
+ * @param {string} config.active[].server active character's server name
+ * @param {string} [config.active[].script] active character's script filename
+ * @returns {Promise<(string|undefined)>} a Promise that resolves if everything is correctly validated
  */
-function validateConfig(config) {
+helpers.validateConfig = function (config) {
   return new Promise((resolve, reject) => {
     if (!isString(config.email) || config.email === '') {
       reject('Must specify an email address in the config file');
@@ -74,15 +83,4 @@ function validateConfig(config) {
 }
 
 
-module.exports = {
-  // simple type checks
-  isString,
-  isNumber,
-  isBoolean,
-  isObject,
-  isFunction,
-  // general
-  tryTo,
-  handleError,
-  validateConfig,
-};
+module.exports = helpers;

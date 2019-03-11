@@ -28,7 +28,7 @@ interface ActiveCharacter {
   name: string;
   region: string;
   server: string;
-  script: string | undefined | null;
+  script: string | undefined;
 };
 ```
 
