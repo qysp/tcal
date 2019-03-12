@@ -43,7 +43,7 @@ function handleError(error, exit=false) {
  * @param {string} config.active[].region active character's region
  * @param {string} config.active[].server active character's server name
  * @param {string} [config.active[].script] active character's script filename
- * @returns {Promise<(string|undefined)>} a Promise that resolves if everything is correctly validated
+ * @returns {Promise<string>} a Promise that resolves if everything is correctly validated
  */
 function validateConfig(config) {
   return new Promise((resolve, reject) => {

@@ -60,7 +60,7 @@ Character.prototype.initProcessor = function (timeFrame) {
  * @param {number} [data.items[].level] item's (upgrade) level
  * @param {number} data.level character's level
  * @param {boolean} data.rip whether the character is dead
- * @param {(string|undefined)} data.target character's target name or undefined (no target)
+ * @param {string} data.target character's target name or undefined (no target)
  * @param {number} data.xp character's current xp
  * @param {number} data.max_xp character's maximum xp for this level
  * @param {number} data.hp character's current hp
