@@ -7,7 +7,7 @@ Heavily inspired by [NexusNull's Adventure Land Bot](https://github.com/NexusNul
 1. copy `config.example.js` and rename it to `config.js`
 2. set your email address and password as well as your active characters in the `config.js`
 3. install the necessary dependencies with the package manager of your choice, e.g. with NPM `npm install`
-4. finally, run `node index.js` to start the client
+4. finally, run `node tcal.js` to start the client
 
 ## Start parameters
 * `--fetch`: fetch your characters and the available servers. Overwrites existing character/server JSON files in the `data` folder.
