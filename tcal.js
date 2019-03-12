@@ -98,13 +98,11 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
       characterData.type
     );
 
+    character.initProcessor(60);
+
     if (argv.log) {
       character.createLog(path.join(logsPath, `${activeChar.name}.log`));
       character.log(new Date().toISOString());
-    }
-
-    if (argv.interface) {
-      character.initProcessor(60);
     }
 
     // TODO: find a cleaner way to set the desired server
