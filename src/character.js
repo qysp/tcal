@@ -2,9 +2,9 @@ const { createWriteStream } = require('fs');
 
 /**
  * Create a character instance.
- * @param {String} id character's id
- * @param {String} name character's name
- * @param {String} cls character's class/type
+ * @param {string} id character's id
+ * @param {string} name character's name
+ * @param {string} cls character's class/type
  */
 function Character(id, name, cls) {
   this.id = id;
@@ -14,7 +14,7 @@ function Character(id, name, cls) {
 
 /**
  * Create a write stream to a logfile.
- * @param {String} path the path to the logfile
+ * @param {string} path the path to the logfile
  */
 Character.prototype.createLog = function(path) {
   this.logfileStream = createWriteStream(path);
@@ -22,7 +22,7 @@ Character.prototype.createLog = function(path) {
 
 /**
  * Log a message into the character's file using the stream.
- * @param {String} message the message to log
+ * @param {string} message the message to log
  */
 Character.prototype.log = function(message) {
   if (this.logfileStream) {

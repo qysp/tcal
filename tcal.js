@@ -59,6 +59,7 @@ const { tryTo, handleError, validateConfig, } = require('./src/helpers');
   let terminalInterface;
   if (argv.interface) {
     terminalInterface = new TerminalInterface();
+    terminalInterface.log('Interface initialized');
   }
 
   for (const activeChar of config.active) {

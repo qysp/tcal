@@ -20,8 +20,8 @@ function TerminalInterface() {
   ];
 
   this.grid = new contrib.grid({
-    rows: 6,
-    cols: 6,
+    rows: 10,
+    cols: 10,
     screen: this.screen,
   });
 
@@ -29,7 +29,7 @@ function TerminalInterface() {
     // row, col
     0, 0,
     // rowSpan, colSpan
-    6, 5,
+    10, 8,
     contrib.line, 
     { showNthLabel: 5,
       label: 'Damage',
@@ -38,12 +38,13 @@ function TerminalInterface() {
   );
 
   this.gameLog = this.grid.set(
-    0, 5,
-    6, 1,
+    0, 8,
+    10, 2,
     contrib.log,
     { fg: "white",
     selectedFg: "white",
-    label: 'Game Log' }
+    label: 'Game Log',
+    bufferLength: 75 }
   );
 
   this.screen.key([ 'escape', 'q', 'C-c' ], () => process.exit(0));
