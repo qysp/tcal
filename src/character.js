@@ -74,31 +74,28 @@ Character.prototype.processUpdate = function (data) {
   if (!this.timeFrame) {
     throw new Error('Data processor has not been initialized yet');
   }
-  this.items = [];
-  this.level = data.level;
-  this.rip = data.rip;
-  this.target = data.target;
-  this.invSlots = data.items.length;
-  this.usedInvSlots = data.items.filter(i => i).length;
 
-  // accumulate all items + quantity by name/level
-  // TODO: needed?
-  data.items
-    .filter(i => i !== null)
-    .forEach(item => {
-      const index = this.items.findIndex(i =>
-        i.name === item.name && (!item.level || i.level === item.level));
+  // keep dmg/gold/xp of the last X seconds defined by `timeFrame`
+  if (this.damageData.length === this.timeFrame) this.damageData.shift();
+  if (this.goldData.length === this.timeFrame) this.goldData.shift();
+  if (this.xpData.length === this.timeFrame) this.xpData.shift();
 
-      if (index === -1) {
-        this.items.push({
-          name: item.name,
-          quantitiy: item.q || 1,
-          level: item.level,
-        });
-      } else {
-        this.items[index].quantitiy += item.q || 1;
-      }
-  });
+  this.damageData.push(data.damage);
+
+  // subtract previous gold/xp value from current gold/xp
+  this.goldData.push(this.gold - data.gold);
+
+  if (this.level < data.level) {
+    this.xpData.length = 0;
+  } else {
+    this.xpData.push(this.xp - data.xp);
+  }
+
+  // set latest gold amount, dps, gps, xpps
+  this.gold = data.gold;
+  this.dps = this.damageData.reduce((acc, cur) => acc + cur) / this.damageData.length;
+  this.gps = this.goldData.reduce((acc, cur) => acc + cur) / this.goldData.length;
+  this.xpps = this.xpData.reduce((acc, cur) => acc + cur) / this.xpData.length;
 
   // set (max) xp/hp/mp and the percentage value
   this.xp = data.xp;
@@ -111,19 +108,12 @@ Character.prototype.processUpdate = function (data) {
   this.maxMp = data.max_mp;
   this.mpPct = ((data.mp / data.max_mp) * 100).toFixed(2);
 
-  // keep dmg/gold/xp of the last X seconds defined by `timeFrame`
-  if (this.damageData.length === this.timeFrame) this.damageData.shift();
-  if (this.goldData.length === this.timeFrame) this.goldData.shift();
-  if (this.xpData.length === this.timeFrame) this.xpData.shift();
-  this.damageData.push(data.damage);
-  this.goldData.push(data.gold);
-  this.xpData.push(data.xp);
-
-  // set latest gold amount, dps/gps/xpps 
-  this.gold = data.gold;
-  this.dps = this.damageData.reduce((acc, cur) => acc + cur) / this.damageData.length;
-  this.gps = this.goldData.reduce((acc, cur) => acc + cur) / this.goldData.length;
-  this.xpps = this.xpData.reduce((acc, cur) => acc + cur) / this.xpData.length;
+  this.level = data.level;
+  this.rip = data.rip;
+  this.target = data.target;
+  this.invSlots = data.items.length;
+  this.usedInvSlots = data.items
+    .filter(item => item === null).length;
 }
 
 module.exports = Character;
